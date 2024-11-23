@@ -15,6 +15,11 @@ type Config struct {
 	BACKEND_URL      string
 	RedisURL         string
 	RedisToken       string
+	SegmindAPIKey    string
+	SegmindSDAPI     string
+	AwsAccessKey     string
+	AwsSecretKey     string
+	AwsRegion        string
 }
 
 func NewConfig() *Config {
@@ -35,5 +40,10 @@ func NewConfig() *Config {
 		BACKEND_URL:      os.Getenv("BACKEND_URL"),
 		RedisURL:         os.Getenv("REDIS_URL"),
 		RedisToken:       os.Getenv("REDIS_TOKEN"),
+		SegmindAPIKey:    os.Getenv("SEGMIND_API_KEY"),
+		SegmindSDAPI:     os.Getenv("SEGMIND_SD_API"),
+		AwsAccessKey:     os.Getenv("AWS_ACCESS_KEY_ID"),
+		AwsSecretKey:     os.Getenv("AWS_SECRET_ACCESS_KEY"),
+		AwsRegion:        os.Getenv("AWS_REGION"),
 	}
 }

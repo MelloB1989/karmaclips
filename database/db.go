@@ -21,10 +21,10 @@ func DBConn() (*sqlx.DB, error) {
 
 	if environment == "dev" {
 		driverName = "postgres"
-		driverSource = "user=mellob dbname=roc8 sslmode=disable password=mellob1989 host=192.168.29.73 port=5432"
+		driverSource = "user=mellob dbname=karmaclips sslmode=disable password=mellob1989 host=192.168.29.73 port=5432"
 	} else {
 		driverName = "postgres"
-		driverSource = "user=mellob dbname=roc8 sslmode=disable password=mellob1989 host=192.168.29.73"
+		driverSource = "user=mellob dbname=karmaclips sslmode=disable password=mellob1989 host=192.168.29.73"
 	}
 
 	db, err := sqlx.Connect(driverName, driverSource)

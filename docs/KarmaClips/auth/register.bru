@@ -1,0 +1,19 @@
+meta {
+  name: register
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:6969/v1/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email":"kartikdd90@gmail.com",
+    "password": "mellob1989",
+    "name": "Kartik"
+  }
+}

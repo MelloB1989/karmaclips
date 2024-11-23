@@ -12,6 +12,8 @@ import { sql } from "drizzle-orm";
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().unique(),
   email: varchar("email").default(""),
+  name: varchar("name").default(""),
+  password: varchar("password").default(""),
   phone: varchar("phone").unique(),
   location: varchar("location"),
   referral_code: varchar("referral_code").unique(),

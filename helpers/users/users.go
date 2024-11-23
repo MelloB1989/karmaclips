@@ -11,7 +11,7 @@ func CreateUser(user *database.Users) (*database.Users, error) {
 	}
 	defer db.Close()
 
-	err = database.InsertStruct(db, "user", user)
+	err = database.InsertStruct(db, "users", user)
 	if err != nil {
 		return nil, err
 	}
