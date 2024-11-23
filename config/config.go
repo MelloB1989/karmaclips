@@ -14,7 +14,6 @@ type Config struct {
 	JWTSecret             string
 	BACKEND_URL           string
 	RedisURL              string
-	RedisToken            string
 	SegmindAPIKey         string
 	SegmindSDAPI          string
 	SegmindSamaritanAPI   string
@@ -42,7 +41,6 @@ func NewConfig() *Config {
 		AdministratorKey:      os.Getenv("ADMINISTRATOR_KEY"),
 		BACKEND_URL:           os.Getenv("BACKEND_URL"),
 		RedisURL:              os.Getenv("REDIS_URL"),
-		RedisToken:            os.Getenv("REDIS_TOKEN"),
 		SegmindAPIKey:         os.Getenv("SEGMIND_API_KEY"),
 		AwsAccessKey:          os.Getenv("AWS_ACCESS_KEY_ID"),
 		AwsSecretKey:          os.Getenv("AWS_SECRET_ACCESS_KEY"),
