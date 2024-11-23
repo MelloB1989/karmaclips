@@ -38,5 +38,6 @@ func main() {
 	}
 
 	// bedrock.PromptModel("\n\nHuman: explain black holes to 8th graders\n\nAssistant:", 0.1, 0.9, 50)
-	bedrock.PromptModelStream("\n\nHuman: explain black holes to 8th graders\n\nAssistant:", 0.1, 0.9, 50)
+	// bedrock.PromptModelStream("\n\nHuman: explain black holes to 8th graders\n\nAssistant:", 0.1, 0.9, 50)
+	bedrock.StartChatSession()
 }
