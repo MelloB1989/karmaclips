@@ -68,7 +68,7 @@ func PromptModel(prompt string, temp float32, top_p float32, max_len int) string
 	return generated.Generation
 }
 
-func PromptModelStream(prompt string, temp float32, top_p float32, max_len int) string {
+func PromptModelStream(prompt string, temp float32, top_p float32, max_len int) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
 	bedrockClient := createClient()
 	input := &bedrockruntime.InvokeModelWithResponseStreamInput{
 		Accept:      aws.String("application/json"),
@@ -85,7 +85,7 @@ func PromptModelStream(prompt string, temp float32, top_p float32, max_len int) 
 	bytes, err := json.Marshal(body)
 	if err != nil {
 		log.Println("Error converting interface to []byte:", err)
-		return ""
+		return nil, err
 	}
 	input.Body = bytes
 
@@ -93,25 +93,25 @@ func PromptModelStream(prompt string, temp float32, top_p float32, max_len int) 
 	stream, err := bedrockClient.InvokeModelWithResponseStream(context.TODO(), input)
 	if err != nil {
 		log.Println("Error invoking model:", err)
-		return ""
+		return nil, err
 	}
 
-	_, err = processStreamingOutput(stream, func(ctx context.Context, part []byte) error {
-		fmt.Print(string(part))
-		return nil
-	})
+	// _, err = ProcessStreamingOutput(stream, func(ctx context.Context, part Generation) error {
+	// 	fmt.Print(string(part.Generation))
+	// 	return nil
+	// })
 
-	if err != nil {
-		log.Fatal("streaming output processing error: ", err)
-	}
+	// if err != nil {
+	// 	log.Fatal("streaming output processing error: ", err)
+	// }
 
 	// You can collect or return the response based on specific needs
-	return ""
+	return stream, nil
 }
 
-type StreamingOutputHandler func(ctx context.Context, part []byte) error
+type StreamingOutputHandler func(ctx context.Context, part Generation) error
 
-func processStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (Generation, error) {
+func ProcessStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (Generation, error) {
 
 	var combinedResult string
 	resp := Generation{}
@@ -128,7 +128,7 @@ func processStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStream
 				return resp, err
 			}
 
-			handler(context.Background(), []byte(resp.Generation))
+			handler(context.Background(), resp)
 			combinedResult += resp.Generation
 
 		case *types.UnknownUnionMember:
