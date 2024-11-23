@@ -2,11 +2,13 @@ package segmind
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"karmaclips/config"
 	"net/http"
+	"os"
 )
 
 func RequestCreateImage(prompt string, batch_size int, width int, height int) {
@@ -26,7 +28,7 @@ func RequestCreateImage(prompt string, batch_size int, width int, height int) {
 		"image_quality":   95,
 		"base64":          true,
 	}
-	api := config.NewConfig().SegmindSDAPI
+	api := config.NewConfig().SegmindSamaritanAPI
 	jsonPayload, err := json.Marshal(data)
 	if err != nil {
 		fmt.Println("Error converting struct to json:", err)
@@ -46,11 +48,42 @@ func RequestCreateImage(prompt string, batch_size int, width int, height int) {
 		return
 	}
 	defer resp.Body.Close()
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Error reading response body:", err)
 		return
 	}
-	fmt.Println("Response Status:", resp.Status)
-	fmt.Println("Response Body:", string(body))
+
+	// Parse JSON response to get the base64 image data
+	var responseData map[string]interface{}
+	err = json.Unmarshal(body, &responseData)
+	if err != nil {
+		fmt.Println("Error parsing JSON response:", err)
+		return
+	}
+
+	// Get the base64 encoded image string
+	imageData, ok := responseData["image"].(string)
+	if !ok {
+		fmt.Println("No image data found in response")
+		return
+	}
+
+	// Decode the base64 image data
+	imageBytes, err := base64.StdEncoding.DecodeString(imageData)
+	if err != nil {
+		fmt.Println("Error decoding base64 image data:", err)
+		return
+	}
+
+	// Save the image to a file
+	fileName := "generated_image1.jpeg"
+	err = os.WriteFile(fileName, imageBytes, 0644)
+	if err != nil {
+		fmt.Println("Error saving image file:", err)
+		return
+	}
+
+	fmt.Println("Image saved successfully as:", fileName)
 }

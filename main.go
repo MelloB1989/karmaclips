@@ -1,7 +1,7 @@
 package main
 
 import (
-	"karmaclips/bedrock"
+	"karmaclips/segmind"
 	"log/slog"
 	"os"
 
@@ -39,5 +39,6 @@ func main() {
 
 	// bedrock.PromptModel("\n\nHuman: explain black holes to 8th graders\n\nAssistant:", 0.1, 0.9, 50)
 	// bedrock.PromptModelStream("\n\nHuman: explain black holes to 8th graders\n\nAssistant:", 0.1, 0.9, 50)
-	bedrock.StartChatSession()
+	// bedrock.StartChatSession()
+	segmind.RequestCreateImage("A beautiful milfy women", 1, 1024, 1024)
 }
