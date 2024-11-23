@@ -1,0 +1,19 @@
+meta {
+  name: create-image
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:6969/v1/gen/image
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "prompt":"A milf",
+    "batch_size": 1,
+    "model": "SegmindSDAPI"
+  }
+}
