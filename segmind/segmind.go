@@ -6,12 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"karmaclips/aws/s3"
 	"karmaclips/config"
+	"karmaclips/utils"
 	"net/http"
 	"os"
 )
 
-func RequestCreateImage(prompt string, batch_size int, width int, height int) {
+func RequestCreateImage(prompt string, model string, batch_size int, width int, height int) (*string, error) {
 	data := map[string]interface{}{
 		"prompt":          prompt,
 		"negative_prompt": "low quality, blurry",
@@ -28,16 +30,28 @@ func RequestCreateImage(prompt string, batch_size int, width int, height int) {
 		"image_quality":   95,
 		"base64":          true,
 	}
-	api := config.NewConfig().SegmindSamaritanAPI
+	api := ""
+	switch model {
+	case "sd":
+		api = config.NewConfig().SegmindSDAPI
+	case "protovis":
+		api = config.NewConfig().SegmindProtovisAPI
+	case "samaritan":
+		api = config.NewConfig().SegmindSamaritanAPI
+	case "dreamshaper":
+		api = config.NewConfig().SegmindDreamshaperAPI
+	default:
+		api = config.NewConfig().SegmindSDAPI //Can be a issue ig
+	}
 	jsonPayload, err := json.Marshal(data)
 	if err != nil {
 		fmt.Println("Error converting struct to json:", err)
-		return
+		return nil, err
 	}
 	req, err := http.NewRequest("POST", api, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		fmt.Println("Error creating request:", err)
-		return
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("x-api-key", config.NewConfig().SegmindAPIKey)
@@ -45,14 +59,14 @@ func RequestCreateImage(prompt string, batch_size int, width int, height int) {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error sending request:", err)
-		return
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Error reading response body:", err)
-		return
+		return nil, err
 	}
 
 	// Parse JSON response to get the base64 image data
@@ -60,30 +74,40 @@ func RequestCreateImage(prompt string, batch_size int, width int, height int) {
 	err = json.Unmarshal(body, &responseData)
 	if err != nil {
 		fmt.Println("Error parsing JSON response:", err)
-		return
+		return nil, err
 	}
 
 	// Get the base64 encoded image string
 	imageData, ok := responseData["image"].(string)
 	if !ok {
 		fmt.Println("No image data found in response")
-		return
+		return nil, err
 	}
 
 	// Decode the base64 image data
 	imageBytes, err := base64.StdEncoding.DecodeString(imageData)
 	if err != nil {
 		fmt.Println("Error decoding base64 image data:", err)
-		return
+		return nil, err
 	}
 
 	// Save the image to a file
-	fileName := "generated_image1.jpeg"
+	fileId := utils.GenerateID() + ".jpeg"
+	fileName := "./tmp/" + fileId
 	err = os.WriteFile(fileName, imageBytes, 0644)
 	if err != nil {
 		fmt.Println("Error saving image file:", err)
-		return
+		return nil, err
+	}
+
+	//Upload to S3
+	err = s3.UploadFile("karmaclips/"+fileId, fileName)
+	if err != nil {
+		fmt.Println("Error uploading image to S3:", err)
+		return nil, err
 	}
 
 	fmt.Println("Image saved successfully as:", fileName)
+	uri := "https://" + config.NewConfig().AwsBucketName + ".s3.ap-south-1.amazonaws.com/" + fileId
+	return &uri, nil
 }

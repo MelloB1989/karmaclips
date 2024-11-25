@@ -16,6 +16,8 @@ type CreateImageReq struct {
 	Prompt    string `json:"prompt"`
 	BatchSize int    `json:"batch_size"`
 	Model     string `json:"model"`
+	Height    int    `json:"height"`
+	Width     int    `json:"width"`
 }
 
 func CreateImage(c *fiber.Ctx) error {
@@ -31,11 +33,13 @@ func CreateImage(c *fiber.Ctx) error {
 		"prompt":     req.Prompt,
 		"batch_size": req.BatchSize,
 		"model":      req.Model,
+		"height":     req.Height,
+		"width":      req.Width,
 		"status":     "pending",
 		"url":        "",
 	}
 
-	jobId := utils.GenerateID()
+	jobId := "karmaclips:" + utils.GenerateID()
 
 	opt, _ := redis.ParseURL(config.NewConfig().RedisURL)
 	client := redis.NewClient(opt)

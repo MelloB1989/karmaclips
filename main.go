@@ -1,6 +1,7 @@
 package main
 
 import (
+	"karmaclips/jobs"
 	"karmaclips/routes"
 	"log/slog"
 	"os"
@@ -20,6 +21,8 @@ func main() {
 		logger.Error("unable to load .env")
 	}
 
+	//Start jobs
+	go jobs.StartJobs()
 	app := routes.Routes()
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",

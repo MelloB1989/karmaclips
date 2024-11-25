@@ -8,12 +8,15 @@ import (
 	"log"
 	"os"
 
+	c "karmaclips/config"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-func UploadFile(bucketName string, objectKey string, fileName string) error {
+func UploadFile(objectKey string, fileName string) error {
+	bucketName := c.NewConfig().AwsBucketName
 	sdkConfig, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		fmt.Println("Couldn't load default configuration. Have you set up your AWS account?")
@@ -31,6 +34,7 @@ func UploadFile(bucketName string, objectKey string, fileName string) error {
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(objectKey),
 		Body:   file,
+		ACL:    "public",
 	})
 	if err != nil {
 		log.Printf("Couldn't upload file %v to %v:%v. Here's why: %v\n", fileName, bucketName, objectKey, err)
@@ -44,7 +48,8 @@ func UploadFile(bucketName string, objectKey string, fileName string) error {
 	return nil
 }
 
-func GetFileByPath(bucketName string, objectKey string) (*os.File, error) {
+func GetFileByPath(objectKey string) (*os.File, error) {
+	bucketName := c.NewConfig().AwsBucketName
 	destinationPath := "./tmp/" + utils.GenerateID()
 	sdkConfig, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
