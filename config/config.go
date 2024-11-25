@@ -22,6 +22,7 @@ type Config struct {
 	AwsAccessKey          string
 	AwsSecretKey          string
 	AwsRegion             string
+	AwsBucketName         string
 }
 
 func NewConfig() *Config {
@@ -45,6 +46,7 @@ func NewConfig() *Config {
 		AwsAccessKey:          os.Getenv("AWS_ACCESS_KEY_ID"),
 		AwsSecretKey:          os.Getenv("AWS_SECRET_ACCESS_KEY"),
 		AwsRegion:             os.Getenv("AWS_REGION"),
+		AwsBucketName:         os.Getenv("BUCKET_NAME"),
 		SegmindSDAPI:          "https://api.segmind.com/v1/stable-diffusion-3.5-large-txt2img",
 		SegmindProtovisAPI:    "https://api.segmind.com/v1/sdxl1.0-protovis-lightning",
 		SegmindSamaritanAPI:   "https://api.segmind.com/v1/sdxl1.0-samaritan-3d",
