@@ -19,7 +19,6 @@ func StartJobs() {
 }
 
 func segmindImageJob() {
-	fmt.Println("Starting job")
 	opt, err := redis.ParseURL(config.NewConfig().RedisURL)
 	if err != nil {
 		return
@@ -33,15 +32,22 @@ func segmindImageJob() {
 	if len(jobListResult) < 1 {
 		return
 	}
-	do := jobListResult[0]
-	jobData, err := client.Get(ctx, do).Result()
-	if err != nil {
-		return
-	}
+	i := 0
+	do := jobListResult[i]
 	var jd JobData
-	err = json.Unmarshal([]byte(jobData), &jd)
-	if jd.Status != "pending" {
-		return
+	for i < len(jobListResult) {
+		i += 1
+		jobData, err := client.Get(ctx, do).Result()
+		if err != nil {
+			return
+		}
+		err = json.Unmarshal([]byte(jobData), &jd)
+		if err != nil {
+			return
+		}
+		if jd.Status == "pending" {
+			break
+		}
 	}
 	jd.Status = "processing"
 

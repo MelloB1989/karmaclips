@@ -24,3 +24,13 @@ export const referrals = pgTable("referrals", {
   createdBy: varchar("created_by").references(() => users.id),
   timestamp: timestamp("timestamp").default(sql`now()`),
 });
+
+export const generations = pgTable("generations", {
+  id: varchar("id").primaryKey().unique(),
+  createdBy: varchar("created_by").references(() => users.id),
+  creditsUsed: integer("credits_used").default(0),
+  timestamp: timestamp("timestamp").default(sql`now()`),
+  mediaUri: text("media_uri").default(""),
+  type: varchar("type").default(""),
+  meta: json("meta").default({}),
+});
