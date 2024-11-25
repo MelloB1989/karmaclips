@@ -18,11 +18,15 @@ import (
 func UploadFile(objectKey string, fileName string) error {
 	bucketName := c.NewConfig().AwsBucketName
 	sdkConfig, err := config.LoadDefaultConfig(context.TODO())
+	s3Config := aws.Config{
+		Region:      *aws.String(c.NewConfig().S3BucketRegion),
+		Credentials: sdkConfig.Credentials,
+	}
 	if err != nil {
 		fmt.Println("Couldn't load default configuration. Have you set up your AWS account?")
 		fmt.Println(err)
 	}
-	s3Client := s3.NewFromConfig(sdkConfig)
+	s3Client := s3.NewFromConfig(s3Config)
 	file, err := os.Open(fileName)
 	if err != nil {
 		log.Printf("Couldn't open file %v to upload. Here's why: %v\n", fileName, err)
@@ -34,7 +38,7 @@ func UploadFile(objectKey string, fileName string) error {
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(objectKey),
 		Body:   file,
-		ACL:    "public",
+		ACL:    "public-read",
 	})
 	if err != nil {
 		log.Printf("Couldn't upload file %v to %v:%v. Here's why: %v\n", fileName, bucketName, objectKey, err)

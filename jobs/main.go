@@ -40,9 +40,17 @@ func segmindImageJob() {
 	}
 	var jd JobData
 	err = json.Unmarshal([]byte(jobData), &jd)
-	// client.Del(ctx, do)
+	if jd.Status != "pending" {
+		return
+	}
 	jd.Status = "processing"
-	client.Set(ctx, do, jd, time.Second*2400)
+
+	jdBytes, err := json.Marshal(jd)
+	if err != nil {
+		fmt.Println("Error marshalling jd:", err)
+		return
+	}
+	client.Set(ctx, do, jdBytes, 0)
 
 	reqImageUri, err := segmind.RequestCreateImage(jd.Prompt, jd.Model, jd.BatchSize, jd.Height, jd.Width)
 	if err != nil {
@@ -51,7 +59,13 @@ func segmindImageJob() {
 	}
 
 	jd.Url = *reqImageUri
-	client.Set(ctx, do, jd, time.Second*2400)
+	jd.Status = "completed"
+	jdBytes, err = json.Marshal(jd)
+	if err != nil {
+		fmt.Println("Error marshalling jd:", err)
+		return
+	}
+	client.Set(ctx, do, jdBytes, 0)
 	return
 }
 

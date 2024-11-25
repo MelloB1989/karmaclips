@@ -108,6 +108,6 @@ func RequestCreateImage(prompt string, model string, batch_size int, width int, 
 	}
 
 	fmt.Println("Image saved successfully as:", fileName)
-	uri := "https://" + config.NewConfig().AwsBucketName + ".s3.ap-south-1.amazonaws.com/" + fileId
+	uri := "https://" + config.NewConfig().AwsBucketName + ".s3.ap-south-1.amazonaws.com/karmaclips/" + fileId
 	return &uri, nil
 }
