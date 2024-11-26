@@ -9,6 +9,7 @@ import (
 	"karmaclips/aws/s3"
 	"karmaclips/config"
 	"karmaclips/utils"
+	"log"
 	"net/http"
 	"os"
 )
@@ -30,7 +31,8 @@ func RequestCreateImage(prompt string, model string, batch_size int, width int, 
 		"image_quality":   95,
 		"base64":          true,
 	}
-	api := ""
+
+	var api string
 	switch model {
 	case "sd":
 		api = config.NewConfig().SegmindSDAPI
@@ -41,8 +43,9 @@ func RequestCreateImage(prompt string, model string, batch_size int, width int, 
 	case "dreamshaper":
 		api = config.NewConfig().SegmindDreamshaperAPI
 	default:
-		api = config.NewConfig().SegmindSDAPI //Can be a issue ig
+		api = config.NewConfig().SegmindSDAPI
 	}
+
 	jsonPayload, err := json.Marshal(data)
 	if err != nil {
 		fmt.Println("Error converting struct to json:", err)
@@ -100,14 +103,17 @@ func RequestCreateImage(prompt string, model string, batch_size int, width int, 
 		return nil, err
 	}
 
-	//Upload to S3
+	// Upload to S3
 	err = s3.UploadFile("karmaclips/"+fileId, fileName)
 	if err != nil {
-		fmt.Println("Error uploading image to S3:", err)
+		log.Printf("Error uploading image to S3: %v", err)
 		return nil, err
 	}
 
-	// fmt.Println("Image saved successfully as:", fileName)
-	uri := "https://" + config.NewConfig().AwsBucketName + ".s3.ap-south-1.amazonaws.com/karmaclips/" + fileId
+	// Clean up local file
+	os.Remove(fileName)
+
+	// Build the S3 URL
+	uri := fmt.Sprintf("https://%s.s3.ap-south-1.amazonaws.com/karmaclips/%s", config.NewConfig().AwsBucketName, fileId)
 	return &uri, nil
 }
