@@ -2,10 +2,12 @@ package generations
 
 import (
 	"karmaclips/database"
+	"karmaclips/utils"
 )
 
 func CreateGeneration(g *database.Generation) (*database.Generation, error) {
 	db, err := database.DBConn()
+	g.Id = utils.GenerateID()
 	if err != nil {
 		return nil, err
 	}

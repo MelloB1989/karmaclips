@@ -13,11 +13,12 @@ import (
 )
 
 type CreateImageReq struct {
-	Prompt    string `json:"prompt"`
-	BatchSize int    `json:"batch_size"`
-	Model     string `json:"model"`
-	Height    int    `json:"height"`
-	Width     int    `json:"width"`
+	Prompt         string `json:"prompt"`
+	BatchSize      int    `json:"batch_size"`
+	Model          string `json:"model"`
+	Height         int    `json:"height"`
+	Width          int    `json:"width"`
+	NegativePrompt string `json:"negative_prompt"`
 }
 
 func CreateImage(c *fiber.Ctx) error {
@@ -30,13 +31,17 @@ func CreateImage(c *fiber.Ctx) error {
 	}
 
 	var genJob = map[string]interface{}{
-		"prompt":     req.Prompt,
-		"batch_size": req.BatchSize,
-		"model":      req.Model,
-		"height":     req.Height,
-		"width":      req.Width,
-		"status":     "pending",
-		"url":        "",
+		"prompt":          req.Prompt,
+		"batch_size":      req.BatchSize,
+		"model":           req.Model,
+		"height":          req.Height,
+		"width":           req.Width,
+		"status":          "pending",
+		"url":             "",
+		"user_id":         c.Locals("uid").(string),
+		"credits_used":    10,
+		"type":            "image",
+		"negative_prompt": req.NegativePrompt,
 	}
 
 	jobId := "karmaclips:" + utils.GenerateID()

@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"karmaclips/config"
+	"karmaclips/database"
+	"karmaclips/helpers/generations"
 	"karmaclips/segmind"
 	"log"
 	"time"
@@ -84,17 +86,39 @@ func segmindImageJob() {
 				jobData.Url = *imageUri
 				jobData.Status = "completed"
 
-				jobDataBytes, err = json.Marshal(jobData)
-				if err != nil {
-					log.Printf("Error marshalling job data for key %s: %v", key, err)
-					continue
+				//Push to DB
+				generation := &database.Generation{
+					CreatedBy:   jobData.UserId,
+					CreditsUsed: jobData.CreditsUsed,
+					Timestamp:   time.Now(),
+					MediaUri:    jobData.Url,
+					Type:        jobData.Type,
+					Meta: database.Meta{
+						ModelId:        jobData.Model,
+						Dimensions:     string(jobData.Height) + "x" + string(jobData.Width),
+						Prompt:         jobData.Prompt,
+						NegativePrompt: jobData.NegativePrompt,
+						BatchSize:      jobData.BatchSize,
+					},
 				}
 
-				err = client.Set(ctx, key, jobDataBytes, 0).Err()
+				_, err = generations.CreateGeneration(generation)
 				if err != nil {
-					log.Printf("Error setting job data for key %s: %v", key, err)
-					continue
+					log.Fatal("DB failure")
 				}
+
+				// jobDataBytes, err = json.Marshal(jobData)
+				// if err != nil {
+				// 	log.Printf("Error marshalling job data for key %s: %v", key, err)
+				// 	continue
+				// }
+
+				// err = client.Set(ctx, key, jobDataBytes, 0).Err()
+				// if err != nil {
+				// 	log.Printf("Error setting job data for key %s: %v", key, err)
+				// 	continue
+				// }
+				client.Del(ctx, key)
 			}
 		}
 
@@ -106,11 +130,15 @@ func segmindImageJob() {
 }
 
 type JobData struct {
-	Prompt    string `json:"prompt"`
-	BatchSize int    `json:"batch_size"`
-	Model     string `json:"model"`
-	Status    string `json:"status"`
-	Url       string `json:"url"`
-	Height    int    `json:"height"`
-	Width     int    `json:"width"`
+	Prompt         string `json:"prompt"`
+	BatchSize      int    `json:"batch_size"`
+	Model          string `json:"model"`
+	Status         string `json:"status"`
+	Url            string `json:"url"`
+	Height         int    `json:"height"`
+	Width          int    `json:"width"`
+	UserId         string `json:"user_id"`
+	CreditsUsed    int    `json:"credits_used"`
+	Type           string `json:"type"`
+	NegativePrompt string `json:"negative_prompt"`
 }
