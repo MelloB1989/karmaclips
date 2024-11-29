@@ -8,6 +8,7 @@ import (
 	"karmaclips/helpers/generations"
 	"karmaclips/segmind"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -95,30 +96,29 @@ func segmindImageJob() {
 					Type:        jobData.Type,
 					Meta: database.Meta{
 						ModelId:        jobData.Model,
-						Dimensions:     string(jobData.Height) + "x" + string(jobData.Width),
+						Dimensions:     strconv.Itoa(jobData.Height) + "x" + strconv.Itoa(jobData.Width),
 						Prompt:         jobData.Prompt,
 						NegativePrompt: jobData.NegativePrompt,
 						BatchSize:      jobData.BatchSize,
 					},
 				}
-
 				_, err = generations.CreateGeneration(generation)
 				if err != nil {
 					log.Fatal("DB failure")
 				}
+				// client.Del(ctx, key)
 
-				// jobDataBytes, err = json.Marshal(jobData)
-				// if err != nil {
-				// 	log.Printf("Error marshalling job data for key %s: %v", key, err)
-				// 	continue
-				// }
+				jobDataBytes, err = json.Marshal(jobData)
+				if err != nil {
+					log.Printf("Error marshalling job data for key %s: %v", key, err)
+					continue
+				}
 
-				// err = client.Set(ctx, key, jobDataBytes, 0).Err()
-				// if err != nil {
-				// 	log.Printf("Error setting job data for key %s: %v", key, err)
-				// 	continue
-				// }
-				client.Del(ctx, key)
+				err = client.Set(ctx, key, jobDataBytes, 30*time.Minute).Err()
+				if err != nil {
+					log.Printf("Error setting job data for key %s: %v", key, err)
+					continue
+				}
 			}
 		}
 

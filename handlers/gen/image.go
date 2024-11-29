@@ -30,6 +30,8 @@ func CreateImage(c *fiber.Ctx) error {
 		})
 	}
 
+	uid := c.Locals("uid").(string)
+
 	var genJob = map[string]interface{}{
 		"prompt":          req.Prompt,
 		"batch_size":      req.BatchSize,
@@ -38,7 +40,7 @@ func CreateImage(c *fiber.Ctx) error {
 		"width":           req.Width,
 		"status":          "pending",
 		"url":             "",
-		"user_id":         c.Locals("uid").(string),
+		"user_id":         uid,
 		"credits_used":    10,
 		"type":            "image",
 		"negative_prompt": req.NegativePrompt,

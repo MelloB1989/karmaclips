@@ -6,6 +6,7 @@ import (
 	"karmaclips/database"
 	"karmaclips/helpers/users"
 	"karmaclips/utils"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
@@ -36,6 +37,7 @@ func Login(c *fiber.Ctx) error {
 		claims := token.Claims.(jwt.MapClaims)
 		claims["email"] = user.Email
 		claims["uid"] = user.Id
+		claims["exp"] = time.Now().Add(time.Hour * 24 * 30).Unix()
 		t, err := token.SignedString([]byte(config.NewConfig().JWTSecret))
 		if err != nil {
 			fmt.Println("Error signing token")

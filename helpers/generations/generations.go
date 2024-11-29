@@ -1,6 +1,7 @@
 package generations
 
 import (
+	"encoding/json"
 	"karmaclips/database"
 	"karmaclips/utils"
 )
@@ -13,7 +14,19 @@ func CreateGeneration(g *database.Generation) (*database.Generation, error) {
 	}
 	defer db.Close()
 
-	err = database.InsertStruct(db, "generations", g)
+	s, err := json.Marshal(g.Meta)
+
+	gg := &database.GenerationDB{
+		Id:          g.Id,
+		CreatedBy:   g.CreatedBy,
+		CreditsUsed: g.CreditsUsed,
+		Timestamp:   g.Timestamp,
+		MediaUri:    g.MediaUri,
+		Type:        g.Type,
+		Meta:        string(s),
+	}
+
+	err = database.InsertStruct(db, "generations", gg)
 	if err != nil {
 		return nil, err
 	}
