@@ -66,7 +66,7 @@ func GetGenerationsByUserId(user_id string) ([]*database.Generation, error) {
 
 	var generations []*database.Generation
 
-	query := "SELECT * FROM generations WHERE user_id = $1"
+	query := "SELECT * FROM generations WHERE created_by = $1"
 	rows, err := db.Query(query, user_id)
 	if err != nil {
 		return nil, err

@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"time"
+	"unicode"
 
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/text/cases"
@@ -35,17 +35,6 @@ func FetchColumnNames(db *sqlx.DB, tableName string) ([]string, error) {
 	return columns, nil
 }
 
-// snakeToCamel converts snake_case column names to CamelCase struct field names.
-func snakeToCamel(s string) string {
-	caser := cases.Title(language.English)
-	parts := strings.Split(s, "_")
-	for i := range parts {
-		parts[i] = caser.String(parts[i])
-	}
-	return strings.Join(parts, "")
-}
-
-// ParseRows parses SQL rows into a slice of structs.
 func ParseRows(rows *sql.Rows, dest interface{}) error {
 	destValue := reflect.ValueOf(dest)
 	if destValue.Kind() != reflect.Ptr || destValue.Elem().Kind() != reflect.Slice {
@@ -56,7 +45,9 @@ func ParseRows(rows *sql.Rows, dest interface{}) error {
 	elemType := sliceValue.Type().Elem()
 
 	// Ensure elemType is a struct
+	isPtr := false
 	if elemType.Kind() == reflect.Ptr {
+		isPtr = true
 		elemType = elemType.Elem()
 	}
 	if elemType.Kind() != reflect.Struct {
@@ -66,6 +57,18 @@ func ParseRows(rows *sql.Rows, dest interface{}) error {
 	columns, err := rows.Columns()
 	if err != nil {
 		return err
+	}
+
+	// Build a mapping from column names to struct fields
+	columnToFieldMap := make(map[string]reflect.StructField)
+	for i := 0; i < elemType.NumField(); i++ {
+		field := elemType.Field(i)
+		dbTag := field.Tag.Get("db")
+		if dbTag != "" {
+			columnToFieldMap[dbTag] = field
+		} else {
+			columnToFieldMap[camelToSnake(field.Name)] = field
+		}
 	}
 
 	for rows.Next() {
@@ -83,45 +86,91 @@ func ParseRows(rows *sql.Rows, dest interface{}) error {
 		elem := reflect.New(elemType).Elem()
 
 		for i, column := range columns {
-			fieldName := snakeToCamel(column)
-			field := elem.FieldByName(fieldName)
+			fieldInfo, ok := columnToFieldMap[column]
+			if !ok {
+				// Try snakeToCamel conversion
+				fieldInfo, ok = columnToFieldMap[snakeToCamel(column)]
+				if !ok {
+					continue // Skip columns without corresponding struct fields
+				}
+			}
 
+			field := elem.FieldByName(fieldInfo.Name)
 			if field.IsValid() && field.CanSet() {
 				val := reflect.ValueOf(columnValues[i])
 
-				// Handle null for slice fields (e.g., []string)
-				if field.Type() == reflect.TypeOf([]string{}) {
-					if val.IsNil() {
-						field.Set(reflect.ValueOf([]string{}))
-					} else {
-						var slice []string
-						if err := json.Unmarshal(columnValues[i].([]byte), &slice); err == nil {
-							field.Set(reflect.ValueOf(slice))
-						} else {
-							log.Println("Failed to unmarshal JSON for field", fieldName, ":", err)
-						}
+				// Handle fields with 'db' tag
+				if fieldInfo.Tag.Get("db") != "" {
+					// Obtain the data as []byte
+					var data []byte
+					switch v := val.Interface().(type) {
+					case []byte:
+						data = v
+					case string:
+						data = []byte(v)
+					default:
+						log.Println("Unsupported type for field with 'db' tag:", fieldInfo.Name)
+						continue
 					}
-				} else if val.Type() == reflect.TypeOf(time.Time{}) {
-					if timeVal, ok := val.Interface().(time.Time); ok {
-						field.Set(reflect.ValueOf(timeVal))
+
+					// Unmarshal the JSON into the field
+					if err := json.Unmarshal(data, field.Addr().Interface()); err != nil {
+						log.Println("Failed to unmarshal JSON for field", fieldInfo.Name, ":", err)
+						continue
 					}
 				} else {
-					// Standard conversion for other types
+					// Standard processing for other fields
 					if val.Kind() == reflect.Ptr && !val.IsNil() {
+						val = val.Elem()
+					}
+					if val.Kind() == reflect.Interface && !val.IsNil() {
 						val = val.Elem()
 					}
 					if val.Type().ConvertibleTo(field.Type()) {
 						field.Set(val.Convert(field.Type()))
+					} else if val.Kind() == reflect.Slice && val.Type().Elem().Kind() == reflect.Uint8 && field.Kind() == reflect.String {
+						// Convert []byte to string
+						field.SetString(string(val.Interface().([]byte)))
+					} else {
+						log.Println("Cannot set field", fieldInfo.Name, "with value of type", val.Type())
 					}
 				}
 			}
 		}
 
-		// Append the new struct pointer to the slice
-		sliceValue.Set(reflect.Append(sliceValue, elem.Addr()))
+		// Append the new struct (or pointer) to the slice
+		if isPtr {
+			sliceValue.Set(reflect.Append(sliceValue, elem.Addr()))
+		} else {
+			sliceValue.Set(reflect.Append(sliceValue, elem))
+		}
 	}
 
 	return nil
+}
+
+func snakeToCamel(s string) string {
+	caser := cases.Title(language.English)
+	parts := strings.Split(s, "_")
+	for i := range parts {
+		parts[i] = caser.String(parts[i])
+	}
+	return strings.Join(parts, "")
+}
+
+func camelToSnake(s string) string {
+	var snake string
+	for i, c := range s {
+		if unicode.IsUpper(c) {
+			if i > 0 {
+				snake += "_"
+			}
+			snake += string(unicode.ToLower(c))
+		} else {
+			snake += string(c)
+		}
+	}
+	return snake
 }
 
 // InsertStruct inserts a struct's fields into the specified table.

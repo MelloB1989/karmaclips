@@ -27,13 +27,13 @@ type Meta struct {
 }
 
 type Generation struct {
-	Id          string    `json:"id"`
-	CreatedBy   string    `json:"created_by"`
-	CreditsUsed int       `json:"credits_used"`
-	Timestamp   time.Time `json:"timestamp"`
-	MediaUri    string    `json:"media_uri"`
-	Type        string    `json:"type"`
-	Meta        Meta      `json:"meta"`
+	Id          string      `json:"id"`
+	CreatedBy   string      `json:"created_by"`
+	CreditsUsed int         `json:"credits_used"`
+	Timestamp   time.Time   `json:"timestamp"`
+	MediaUri    string      `json:"media_uri"`
+	Type        string      `json:"type"`
+	Meta        interface{} `json:"meta" db:"meta"`
 }
 
 type GenerationDB struct {
