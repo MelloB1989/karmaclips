@@ -44,5 +44,6 @@ func Routes() *fiber.App {
 
 	generationRoutes := v1.Group("/generations")
 	generationRoutes.Get("/", middlewares.IsUserVerified, generations.GetGenerationsByUserId)
+	generationRoutes.Post("/bydate", middlewares.IsUserVerified, generations.GetGenerationsByDate)
 	return app
 }

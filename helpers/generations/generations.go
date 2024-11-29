@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"karmaclips/database"
 	"karmaclips/utils"
+	"time"
 )
 
 func CreateGeneration(g *database.Generation) (*database.Generation, error) {
@@ -90,8 +91,32 @@ func GetGenerationsByUserIdAndType(user_id string, mtype string) ([]*database.Ge
 
 	var generations []*database.Generation
 
-	query := "SELECT * FROM generations WHERE user_id = $1 AND type = $2"
+	query := "SELECT * FROM generations WHERE created_by = $1 AND type = $2"
 	rows, err := db.Query(query, user_id, mtype)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	err = database.ParseRows(rows, &generations)
+	if err != nil {
+		return nil, err
+	}
+
+	return generations, nil
+}
+
+func GetGenerationsByUserIdAndDate(user_id string, date time.Time) ([]*database.Generation, error) {
+	db, err := database.DBConn()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	var generations []*database.Generation
+
+	query := "SELECT * FROM generations WHERE created_by = $1 AND DATE(timestamp) = $2"
+	rows, err := db.Query(query, user_id, date.Format("2006-01-02"))
 	if err != nil {
 		return nil, err
 	}
