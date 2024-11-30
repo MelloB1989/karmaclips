@@ -8,6 +8,7 @@ import (
 	"karmaclips/handlers/auth"
 	"karmaclips/handlers/gen"
 	"karmaclips/handlers/generations"
+	"karmaclips/handlers/services"
 	"karmaclips/middlewares"
 )
 
@@ -45,5 +46,11 @@ func Routes() *fiber.App {
 	generationRoutes := v1.Group("/generations")
 	generationRoutes.Get("/", middlewares.IsUserVerified, generations.GetGenerationsByUserId)
 	generationRoutes.Post("/bydate", middlewares.IsUserVerified, generations.GetGenerationsByDate)
+
+	servicesRoutes := v1.Group("/services")
+	servicesRoutes.Post("/", middlewares.IsUserVerified, services.CreateService)
+	servicesRoutes.Get("/", middlewares.IsUserVerified, services.GetServices)
+	servicesRoutes.Get("/:id", middlewares.IsUserVerified, services.GetServiceById)
+
 	return app
 }

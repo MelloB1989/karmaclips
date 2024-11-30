@@ -1,13 +1,20 @@
 package services
 
-import "karmaclips/database"
+import (
+	"karmaclips/database"
+	"karmaclips/utils"
+	"log"
+)
 
 func CreateService(service *database.AiServices) (*database.AiServices, error) {
 	db, err := database.DBConn()
 	if err != nil {
+		log.Fatal("DB connection failed!")
 		return nil, err
 	}
 	defer db.Close()
+
+	service.Aid = utils.GenerateID()
 
 	err = database.InsertStruct(db, "ai_services", service)
 	if err != nil {
@@ -20,6 +27,7 @@ func CreateService(service *database.AiServices) (*database.AiServices, error) {
 func GetServiceById(id string) (*database.AiServices, error) {
 	db, err := database.DBConn()
 	if err != nil {
+		log.Fatal("DB connection failed!")
 		return nil, err
 	}
 	defer db.Close()
@@ -29,6 +37,7 @@ func GetServiceById(id string) (*database.AiServices, error) {
 
 	rows, err := db.Query(query)
 	if err != nil {
+
 		return nil, err
 	}
 	defer rows.Close()
@@ -43,6 +52,7 @@ func GetServiceById(id string) (*database.AiServices, error) {
 func GetServices() ([]*database.AiServices, error) {
 	db, err := database.DBConn()
 	if err != nil {
+		log.Fatal("DB connection failed!")
 		return nil, err
 	}
 	defer db.Close()
