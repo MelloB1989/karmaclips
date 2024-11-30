@@ -2,8 +2,9 @@ package services
 
 import (
 	"karmaclips/database"
-	"karmaclips/utils"
 	"log"
+
+	"github.com/MelloB1989/karma/utils"
 )
 
 func CreateService(service *database.AiServices) (*database.AiServices, error) {
