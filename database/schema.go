@@ -45,3 +45,38 @@ type GenerationDB struct {
 	Type        string    `json:"type"`
 	Meta        string    `json:"meta"`
 }
+
+type AiServices struct {
+	Aid           string `json:"aid"`
+	Type          string `json:"type"`
+	Provider      string `json:"provider"`
+	PrePrompt     string `json:"pre_prompt"`
+	Banner        string `json:"banner"`
+	Description   string `json:"description"`
+	CreditsPerGen int    `json:"credits_per_gen"`
+}
+
+type Wallet struct {
+	WalletId string `json:"wallet_id"`
+	UserId   string `json:"user_id"`
+	Balance  int    `json:"balance"`
+}
+
+type Transactions struct {
+	TrxId       string    `json:"trx_id"`
+	UserId      string    `json:"user_id"`
+	WalletId    string    `json:"wallet_id"`
+	Amount      int       `json:"amount"`
+	Description string    `json:"description"`
+	Timestamp   time.Time `json:"timestamp"`
+}
+
+type Projects struct {
+	ProjectId   string `json:"project_id"`
+	Type        string `json:"type"`
+	UserId      string `json:"user_id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Meta        string `json:"meta"`
+	States      string `json:"states"`
+}
